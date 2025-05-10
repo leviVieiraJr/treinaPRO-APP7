@@ -1,0 +1,4 @@
+# Ignorar dependências e arquivos temporários
+node_modules/
+*.log
+.expo/
