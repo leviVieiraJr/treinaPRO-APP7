@@ -19,7 +19,7 @@ export default function Header({ nome = 'Maria' }: HeaderProps) {
 
 const styles = StyleSheet.create({
     header: {
-      backgroundColor: '#dcdcdc',
+      backgroundColor: '#008F9C',
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',

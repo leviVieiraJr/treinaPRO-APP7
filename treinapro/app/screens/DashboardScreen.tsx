@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import Header from '../components/Header';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import BottomNavBar from '../components/BottomNavBar';
 
 export default function DashboardScreen() {
   const router = useRouter();
@@ -85,6 +86,7 @@ export default function DashboardScreen() {
           </View>
         ))}
       </ScrollView>
+      <BottomNavBar />
     </View>
   );
 }

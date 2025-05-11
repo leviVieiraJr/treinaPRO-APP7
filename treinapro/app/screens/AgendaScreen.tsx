@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
 import Header from '../components/Header';
+import BottomNavBar from '../components/BottomNavBar';
 
 const AgendaScreen = () => {
   const agenda = [
@@ -40,6 +41,7 @@ const AgendaScreen = () => {
         )}
       />
     </View>
+    <BottomNavBar />
     </View>
   );
 };
