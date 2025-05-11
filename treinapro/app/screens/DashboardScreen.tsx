@@ -1,10 +1,17 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import Header from '../components/Header';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function DashboardScreen() {
   const router = useRouter();
+
+   const handleLogout = async () => {
+    await AsyncStorage.removeItem('logged');
+    router.replace('/');
+  };
+
 
   const empresas = [
     { id: '1', nome: 'Construtora Alfa' },
@@ -31,6 +38,9 @@ export default function DashboardScreen() {
       <Header />
 
       <ScrollView contentContainerStyle={styles.container}>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Text style={styles.logoutText}>Sair</Text>
+        </TouchableOpacity>
         <Text style={styles.titulo}>Empresas Cadastradas</Text>
         {empresas.map((empresa) => (
           <View key={empresa.id} style={styles.card}>
@@ -86,6 +96,18 @@ const styles = StyleSheet.create({
     fontFamily: 'PoppinsBold',
     marginVertical: 12,
     color: '#0A1E50',
+  },
+  logoutButton: {
+    marginTop: 40,
+    backgroundColor: '#d32f2f',
+    padding: 12,
+    borderRadius: 8,
+    alignSelf: 'center'
+  },
+  logoutText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16
   },
   botaoEmpresas: {
     fontFamily: 'PoppinsBold',
