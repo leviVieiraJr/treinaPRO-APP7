@@ -1,194 +1,244 @@
-import React, { useState } from 'react';
-import Header from '../components/Header';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  Alert,
-  ScrollView,
-} from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+// app/tabs/prova.tsx
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
+import BottomNavBar from '../components/BottomNavBar';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 
-export default function ProvaScreen() {
-  const { os } = useLocalSearchParams();
+export default function ProvaConfig() {
+  const router = useRouter();
+  const params = useLocalSearchParams();
 
-  const [nome, setNome] = useState('');
-  const [cpf, setCpf] = useState('');
-  const [respostas, setRespostas] = useState<number[]>([-1, -1, -1]);
+  const [curso, setCurso] = useState(params.curso || '');
+  const [nomeModelo, setNomeModelo] = useState('');
 
-  const perguntas = [
-    {
-      texto: 'Qual é a primeira ação ao encontrar uma vítima desacordada?',
-      alternativas: [
-        'Chamar o resgate',
-        'Verificar a respiração',
-        'Gritar com ela',
-        'Oferecer água',
-      ],
-    },
-    {
-      texto: 'O extintor de incêndio tipo ABC é indicado para:',
-      alternativas: [
-        'Apenas papel',
-        'Qualquer tipo de fogo',
-        'Fogo elétrico somente',
-        'Plástico e vidro',
-      ],
-    },
-    {
-      texto: 'Em caso de queimadura leve, o que se deve fazer?',
-      alternativas: [
-        'Passar manteiga',
-        'Usar gelo diretamente',
-        'Lavar com água corrente',
-        'Cobrir com pano sujo',
-      ],
-    },
-  ];
-
-  const gabarito = [1, 1, 2];
-
-  const handleSelecionar = (index: number, resposta: number) => {
-    const novas = [...respostas];
-    novas[index] = resposta;
-    setRespostas(novas);
+  type Pergunta = {
+    enunciado: string;
+    alternativas: string[];
+    correta: number;
   };
 
-  const handleFinalizar = () => {
-    if (!nome || !cpf || respostas.includes(-1)) {
-      Alert.alert('Preencha todos os campos e responda todas as perguntas.');
+  const [perguntas, setPerguntas] = useState<Pergunta[]>([
+    { enunciado: '', alternativas: ['', '', '', ''], correta: 0 }
+  ]);
+
+ useEffect(() => {
+  if (params.modelo) {
+    try {
+      const modelo = JSON.parse(params.modelo as string);
+      if (perguntas.length === 1 && perguntas[0].enunciado === '') {
+        setCurso(modelo.curso);
+        setNomeModelo(modelo.nome || '');
+        setPerguntas(modelo.perguntas);
+      }
+    } catch (e) {
+      console.warn('Erro ao carregar modelo:', e);
+    }
+  }
+}, [params.modelo]);
+
+
+  const adicionarPergunta = () => {
+    setPerguntas([...perguntas, { enunciado: '', alternativas: ['', '', '', ''], correta: 0 }]);
+  };
+
+  const atualizarPergunta = (
+    index: number,
+    campo: 'enunciado' | 'alternativas' | 'correta',
+    valor: string | string[] | number
+  ) => {
+    const novas = [...perguntas];
+    if (campo === 'enunciado' && typeof valor === 'string') {
+      novas[index].enunciado = valor;
+    } else if (campo === 'alternativas' && Array.isArray(valor)) {
+      novas[index].alternativas = valor;
+    } else if (campo === 'correta' && typeof valor === 'number') {
+      novas[index].correta = valor;
+    }
+    setPerguntas(novas);
+  };
+
+  const atualizarAlternativa = (pIndex: number, aIndex: number, valor: string) => {
+    const novas = [...perguntas];
+    novas[pIndex].alternativas[aIndex] = valor;
+    setPerguntas(novas);
+  };
+
+  const salvarProva = () => {
+    const cursoStr = Array.isArray(curso) ? curso.join(', ') : curso;
+    if (!cursoStr.trim()) {
+      alert('Informe o nome do curso.');
       return;
     }
 
-    let acertos = 0;
-    respostas.forEach((resposta, index) => {
-      if (resposta === gabarito[index]) acertos++;
-    });
+    if (perguntas.some(p => !p.enunciado.trim() || p.alternativas.some(a => !a.trim()))) {
+      alert('Preencha todas as perguntas e alternativas.');
+      return;
+    }
 
-    const nota = Math.round((acertos / perguntas.length) * 10);
+    const estrutura = {
+      curso,
+      perguntas,
+    };
+    console.log('Prova salva:', estrutura);
+    alert('Prova salva localmente!');
+  };
 
-    console.log('Prova enviada:', { os, nome, cpf, respostas, nota });
+  const salvarComoModelo = () => {
+    if (!nomeModelo.trim()) {
+      alert('Informe o nome do modelo.');
+      return;
+    }
 
-    Alert.alert('Avaliação enviada!', `Nota: ${nota}\nObrigado por participar.`);
+    const modelo = {
+      nome: nomeModelo,
+      curso,
+      perguntas,
+    };
 
-    setNome('');
-    setCpf('');
-    setRespostas([-1, -1, -1]);
+    console.log('Modelo salvo:', modelo);
+    Alert.alert('Modelo salvo!', `Modelo "${modelo.nome}" disponível para reutilização.`);
+  };
+
+  const navegarParaModelos = () => {
+    router.push('/(tabs)/modelos');
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#F4F4F4' }}>
-      <Header/>
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.titulo}>Avaliação do Treinamento</Text>
-      <Text style={styles.subtitulo}>Treinamento: {os}</Text>
+    <View style={{ flex: 1 }}>
+      <ScrollView contentContainerStyle={styles.container} style={{ flex: 1 }}>
+        <Text style={styles.title}>Cadastro de Prova</Text>
 
-      <TextInput
-        placeholder="Nome completo"
-        value={nome}
-        onChangeText={setNome}
-        style={styles.input}
-      />
+        <Text style={styles.label}>Curso</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Nome do curso (ex: NR-10)"
+          value={Array.isArray(curso) ? curso.join(', ') : curso || ''}
+          onChangeText={setCurso}
+        />
 
-      <TextInput
-        placeholder="CPF"
-        value={cpf}
-        onChangeText={setCpf}
-        keyboardType="numeric"
-        style={styles.input}
-      />
+        <Text style={styles.label}>Nome do Modelo (opcional)</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Ex: Prova NR-10 Avançada"
+          value={nomeModelo}
+          onChangeText={setNomeModelo}
+        />
 
-      {perguntas.map((pergunta, index) => (
-        <View key={index} style={styles.card}>
-          <Text style={styles.pergunta}>{index + 1}. {pergunta.texto}</Text>
-          {pergunta.alternativas.map((alt, i) => (
-            <TouchableOpacity
-              key={i}
-              style={[
-                styles.opcao,
-                respostas[index] === i && styles.selecionado,
-              ]}
-              onPress={() => handleSelecionar(index, i)}
-            >
-              <Text style={[
-                styles.opcaoTexto,
-                respostas[index] === i && { color: '#fff' },
-              ]}>
-                {alt}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      ))}
+        {perguntas.map((p, index) => (
+          <View key={index} style={styles.card}>
+            <Text style={styles.label}>Pergunta {index + 1}</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Digite o enunciado"
+              value={p.enunciado}
+              onChangeText={(text) => atualizarPergunta(index, 'enunciado', text)}
+            />
 
-      <TouchableOpacity style={styles.botao} onPress={handleFinalizar}>
-        <Text style={styles.botaoTexto}>Finalizar Avaliação</Text>
-      </TouchableOpacity>
-    </ScrollView>
+            {p.alternativas.map((alt, aIndex) => (
+              <TextInput
+                key={aIndex}
+                style={[styles.input, p.correta === aIndex && styles.inputCorreta]}
+                placeholder={`Alternativa ${String.fromCharCode(65 + aIndex)}`}
+                value={alt}
+                onChangeText={(text) => atualizarAlternativa(index, aIndex, text)}
+                onFocus={() => atualizarPergunta(index, 'correta', aIndex)}
+              />
+            ))}
+            <Text style={styles.obs}>* Toque na alternativa para marcar como correta</Text>
+          </View>
+        ))}
+
+        <TouchableOpacity style={styles.addButton} onPress={adicionarPergunta}>
+          <Text style={styles.addButtonText}>+ Adicionar Pergunta</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.saveButton} onPress={salvarProva}>
+          <Text style={styles.saveButtonText}>Salvar Prova</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={[styles.saveButton, { backgroundColor: '#0A1E50', marginTop: 12 }]} onPress={salvarComoModelo}>
+          <Text style={styles.saveButtonText}>Salvar como Modelo</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={[styles.saveButton, { backgroundColor: '#444', marginTop: 12 }]} onPress={navegarParaModelos}>
+          <Text style={styles.saveButtonText}>📚 Ver Modelos Salvos</Text>
+        </TouchableOpacity>
+      </ScrollView>
+
+      <View style={styles.navContainer}>
+        <BottomNavBar />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 24, backgroundColor: '#F4F4F4' },
-  titulo: {
-    fontSize: 22,
-    fontFamily: 'PoppinsBold',
-    color: '#0A1E50',
-    marginBottom: 10,
+  container: {
+    backgroundColor: '#F5F7FA',
+    padding: 16,
   },
-  subtitulo: {
-    fontSize: 14,
-    fontFamily: 'Poppins',
-    color: '#444',
-    marginBottom: 20,
+  navContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#0A1E50',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  label: {
+    fontWeight: 'bold',
+    marginBottom: 6,
+    color: '#333',
   },
   input: {
     backgroundColor: '#fff',
-    padding: 14,
-    borderRadius: 10,
-    marginBottom: 16,
-    fontFamily: 'Poppins',
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 8,
+  },
+  inputCorreta: {
+    borderColor: '#0A1E50',
+    backgroundColor: '#E8F0FE',
+  },
+  obs: {
+    fontSize: 12,
+    color: '#666',
+    fontStyle: 'italic',
   },
   card: {
     backgroundColor: '#fff',
     borderRadius: 10,
+    padding: 12,
+    marginBottom: 20,
+    elevation: 2,
+  },
+  addButton: {
+    backgroundColor: '#aaa',
     padding: 14,
+    borderRadius: 10,
+    alignItems: 'center',
     marginBottom: 20,
   },
-  pergunta: {
-    fontSize: 15,
-    fontFamily: 'PoppinsBold',
-    color: '#333',
-    marginBottom: 10,
-  },
-  opcao: {
-    padding: 10,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    marginTop: 6,
-  },
-  selecionado: {
-    backgroundColor: '#0A1E50',
-    borderColor: '#0A1E50',
-  },
-  opcaoTexto: {
-    fontFamily: 'Poppins',
-    color: '#333',
-  },
-  botao: {
-    marginTop: 24,
-    backgroundColor: '#008F9C',
-    paddingVertical: 14,
-    borderRadius: 10,
-  },
-  botaoTexto: {
+  addButtonText: {
     color: '#fff',
-    textAlign: 'center',
-    fontFamily: 'PoppinsBold',
-    fontSize: 15,
+    fontWeight: 'bold',
+  },
+  saveButton: {
+    backgroundColor: '#008F9C',
+    padding: 16,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  saveButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
 });

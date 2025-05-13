@@ -30,9 +30,6 @@ export default function BottomNavBar() {
       case 'relatorios':
         router.push('/relatorios');
         break;
-      case 'presenca':
-        router.push('/presenca');
-        break;
       case 'prova':
         router.push('/prova');
         break;
