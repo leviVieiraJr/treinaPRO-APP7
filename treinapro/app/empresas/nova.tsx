@@ -36,7 +36,6 @@ export default function NovaEmpresaScreen() {
 
     return (
         <View style={{ flex: 1, backgroundColor: '#F4F4F4' }}>
-            <Header/>
         <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
             style={{ flex: 1 }}

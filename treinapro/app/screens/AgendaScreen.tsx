@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
-import Header from '../components/Header';
 import BottomNavBar from '../components/BottomNavBar';
 
 const AgendaScreen = () => {
@@ -16,7 +15,6 @@ const AgendaScreen = () => {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#F4F4F4' }}>
-      <Header/>
     <View style={styles.container}>
       <Text style={styles.header}>Agenda de Hoje</Text>
 

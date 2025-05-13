@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import Header from '../components/Header';
+
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import BottomNavBar from '../components/BottomNavBar';
@@ -36,7 +36,6 @@ export default function DashboardScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#F4F4F4' }}>
-      <Header />
 
       <ScrollView contentContainerStyle={styles.container}>
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
@@ -100,11 +99,13 @@ const styles = StyleSheet.create({
     color: '#0A1E50',
   },
   logoutButton: {
-    marginTop: 40,
-    backgroundColor: '#d32f2f',
+    marginTop: 0,
+    backgroundColor: '#ccc',
     padding: 12,
     borderRadius: 8,
-    alignSelf: 'center'
+    alignSelf: 'center',
+    position: 'absolute',
+    bottom: 30,
   },
   logoutText: {
     color: '#fff',

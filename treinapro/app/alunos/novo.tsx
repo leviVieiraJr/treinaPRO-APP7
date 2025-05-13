@@ -37,7 +37,6 @@ export default function NovoAlunoScreen() {
 
     return (
         <View style={{ flex: 1, backgroundColor: '#F4F4F4' }}>
-            <Header/>
         <ScrollView contentContainerStyle={styles.container}>
             <TouchableOpacity onPress={() => router.back()}>
                 <Text style={styles.voltar}>← Voltar</Text>

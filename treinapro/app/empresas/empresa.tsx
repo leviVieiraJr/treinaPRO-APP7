@@ -27,11 +27,8 @@ export default function ListaEmpresasScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#F4F4F4' }}>
-      <Header/>
+
     <View style={styles.container}>
-      <TouchableOpacity onPress={() => router.back()}>
-        <Text style={styles.voltar}>← Voltar</Text>
-      </TouchableOpacity>
       <Text style={styles.titulo}>Empresas Contratantes</Text>
 
       <TextInput

@@ -46,7 +46,7 @@ export default function DetalheEmpresaScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.titulo}>Empresa #{id}</Text>
+      <Text style={styles.titulo}>Empresa{id}</Text>
 
       <View style={styles.boxCadastro}>
         <Text style={styles.subtitulo}>Cadastrar Aluno</Text>

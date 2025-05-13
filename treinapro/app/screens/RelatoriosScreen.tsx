@@ -1,203 +1,124 @@
-import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
-import * as Print from 'expo-print';
-import * as Sharing from 'expo-sharing';
-import * as FileSystem from 'expo-file-system';
+// app/tabs/relatorios.tsx
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, FlatList, TextInput } from 'react-native';
+import BottomNavBar from '../components/BottomNavBar';
 
-function gerarCertificadoHTML(
-  nome: string,
-  curso: string,
-  empresa: string,
-  data: string,
-  qrURL: string,
-  link: string
-): string {
-  return `
-    <html>
-      <head>
-        <meta charset="utf-8" />
-        <style>
-          body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 50px;
-            background-color: #fdfdfd;
-          }
-          .certificado {
-            border: 6px solid #0A1E50;
-            padding: 40px;
-          }
-          h1 {
-            font-size: 28px;
-            color: #0A1E50;
-          }
-          h2 {
-            margin-top: 30px;
-            font-size: 22px;
-            color: #333;
-          }
-          p {
-            font-size: 16px;
-            color: #555;
-            margin-top: 20px;
-            line-height: 1.6;
-          }
-          .assinatura {
-            margin-top: 40px;
-            font-size: 14px;
-            color: #999;
-          }
-          .qr {
-            margin-top: 30px;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="certificado">
-          <h1>CERTIFICADO DE CONCLUSÃO</h1>
-          <h2>${nome}</h2>
-          <p>
-            Participou do treinamento <strong>${curso}</strong><br/>
-            realizado para a empresa <strong>${empresa}</strong>.<br/>
-            Concluído com sucesso na data <strong>${data}</strong>.
-          </p>
-          <div class="assinatura">
-            TreinaPro • ${new Date().toLocaleDateString()}
-          </div>
-          <div class="qr">
-            <img src="${qrURL}" width="120" />
-            <p style="font-size:12px;color:#777;">Validação: ${link}</p>
-          </div>
-        </div>
-      </body>
-    </html>
-  `;
-}
+const presencas = [
+  { id: '1', aluno: 'João Silva', cpf: '12345678900', empresa: 'Construmax', cnpj: '12345678000199', curso: 'NR-10', data: '12/05/2025', hora: '08:00' },
+  { id: '2', aluno: 'Maria Souza', cpf: '98765432100', empresa: 'Metalbras', cnpj: '98765432000100', curso: 'NR-35', data: '12/05/2025', hora: '09:00' },
+];
 
-async function exportarCertificadoPDF(
-  nome: string,
-  curso: string,
-  empresa: string,
-  data: string
-) {
-  try {
-    const id = `OS001-${nome.replace(/\s+/g, '')}`;
-    const link = `https://treinapro.com/certificados/${id}`;
-    const qrURL = `https://quickchart.io/qr?text=${encodeURIComponent(link)}&size=120`;
+const provas = [
+  { id: '1', aluno: 'João Silva', cpf: '12345678900', empresa: 'Construmax', cnpj: '12345678000199', curso: 'NR-10', data: '12/05/2025', nota: 8.5, status: 'Aprovado', certificado: true },
+  { id: '2', aluno: 'Maria Souza', cpf: '98765432100', empresa: 'Metalbras', cnpj: '98765432000100', curso: 'NR-35', data: '12/05/2025', nota: 6.0, status: 'Reprovado', certificado: false },
+];
 
-    const html = gerarCertificadoHTML(nome, curso, empresa, data, qrURL, link);
-    const file = await Print.printToFileAsync({ html, base64: false });
+export default function Relatorios() {
+  const [filtro, setFiltro] = useState('');
 
-    if (!file?.uri) {
-      alert('Erro ao gerar certificado.');
-      return;
-    }
+  const presencasFiltradas = presencas.filter(p =>
+    p.aluno.toLowerCase().includes(filtro.toLowerCase()) ||
+    p.cpf.includes(filtro) ||
+    p.empresa.toLowerCase().includes(filtro.toLowerCase()) ||
+    p.cnpj.includes(filtro)
+  );
 
-    const newUri =
-      FileSystem.documentDirectory + `Certificado-${nome.replace(/\s+/g, '_')}.pdf`;
-
-    await FileSystem.moveAsync({ from: file.uri, to: newUri });
-
-    if (await Sharing.isAvailableAsync()) {
-      await Sharing.shareAsync(newUri);
-    } else {
-      alert('Compartilhamento não disponível neste dispositivo.');
-    }
-  } catch (error) {
-    console.error('Erro ao exportar certificado:', error);
-    if (error instanceof Error) {
-      alert('Erro ao gerar o certificado: ' + error.message);
-    } else {
-      alert('Erro ao gerar o certificado: ' + String(error));
-    }
-  }
-}
-
-export default function RelatoriosScreen() {
-  const { os } = useLocalSearchParams();
-
-  const presencas = [
-    { nome: 'João Silva', cpf: '123.456.789-00' },
-    { nome: 'Ana Souza', cpf: '987.654.321-00' },
-  ];
+  const provasFiltradas = provas.filter(p =>
+    p.aluno.toLowerCase().includes(filtro.toLowerCase()) ||
+    p.cpf.includes(filtro) ||
+    p.empresa.toLowerCase().includes(filtro.toLowerCase()) ||
+    p.cnpj.includes(filtro)
+  );
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.titulo}>Relatório - Ordem de Serviço: {os}</Text>
+    <View style={styles.container}>
+      <Text style={styles.title}>Relatórios</Text>
 
-      <Text style={styles.subtitulo}>Presenças</Text>
-      {presencas.map((aluno, index) => (
-        <View key={index} style={styles.card}>
-          <Text style={styles.nome}>{aluno.nome}</Text>
-          <Text style={styles.cpf}>CPF: {aluno.cpf}</Text>
-          <TouchableOpacity
-            style={styles.botao}
-            onPress={() =>
-              exportarCertificadoPDF(
-                aluno.nome,
-                'NR-35 - Trabalho em Altura',
-                'Construtora Alfa',
-                '2024-06-20'
-              )
-            }
-          >
-            <Text style={styles.botaoTexto}>Emitir Certificado</Text>
-          </TouchableOpacity>
-        </View>
-      ))}
-    </ScrollView>
+      <TextInput
+        placeholder="Buscar por nome, CPF ou CNPJ"
+        style={styles.search}
+        value={filtro}
+        onChangeText={setFiltro}
+      />
+
+      <Text style={styles.sectionTitle}>Presenças Registradas</Text>
+      <FlatList
+        data={presencasFiltradas}
+        keyExtractor={(item) => item.id}
+        style={styles.list}
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            <Text style={styles.line}>{item.aluno} ({item.cpf}) - {item.empresa} ({item.cnpj})</Text>
+            <Text style={styles.line}>Curso: {item.curso}</Text>
+            <Text style={styles.line}>Data: {item.data} às {item.hora}</Text>
+          </View>
+        )}
+      />
+
+      <Text style={styles.sectionTitle}>Resultados de Provas</Text>
+      <FlatList
+        data={provasFiltradas}
+        keyExtractor={(item) => item.id}
+        style={styles.list}
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            <Text style={styles.line}>{item.aluno} ({item.cpf}) - {item.empresa} ({item.cnpj})</Text>
+            <Text style={styles.line}>Curso: {item.curso}</Text>
+            <Text style={styles.line}>Data: {item.data}</Text>
+            <Text style={styles.line}>Nota: {item.nota} - {item.status}</Text>
+            <Text style={styles.line}>Certificado: {item.certificado ? 'Emitido' : 'Não emitido'}</Text>
+          </View>
+        )}
+      />
+
+      <BottomNavBar />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 20, backgroundColor: '#F4F4F4' },
-  titulo: {
-    fontSize: 20,
-    fontFamily: 'PoppinsBold',
-    color: '#0A1E50',
-    marginBottom: 16,
+  container: {
+    flex: 1,
+    backgroundColor: '#F5F7FA',
+    padding: 16,
+    paddingBottom: 80,
   },
-  subtitulo: {
-    fontSize: 16,
-    fontFamily: 'PoppinsBold',
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 12,
+    color: '#0A1E50',
+    textAlign: 'center',
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
     marginTop: 20,
-    marginBottom: 10,
+    marginBottom: 8,
     color: '#333',
+  },
+  list: {
+    marginBottom: 20,
   },
   card: {
     backgroundColor: '#fff',
+    padding: 12,
     borderRadius: 10,
-    padding: 14,
-    marginBottom: 16,
-    elevation: 1,
+    marginBottom: 10,
+    elevation: 2,
   },
-  nome: {
-    fontSize: 15,
-    fontFamily: 'PoppinsBold',
-    color: '#333',
-  },
-  cpf: {
-    fontSize: 13,
-    fontFamily: 'Poppins',
-    color: '#666',
-    marginBottom: 8,
-  },
-  botao: {
-    backgroundColor: '#008F9C',
-    paddingVertical: 10,
-    borderRadius: 8,
-  },
-  botaoTexto: {
-    color: '#fff',
-    fontFamily: 'PoppinsBold',
-    textAlign: 'center',
+  line: {
     fontSize: 14,
+    color: '#444',
+  },
+  search: {
+    backgroundColor: '#A9A9A9',
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    fontSize: 14,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    marginBottom: 12,
   },
 });

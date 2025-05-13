@@ -13,6 +13,7 @@ export default function Header({ nome = 'Maria' }: HeaderProps) {
         style={styles.logo}
         resizeMode="contain"
       />
+      
     </View>
   );
 }
